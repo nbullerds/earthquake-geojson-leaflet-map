@@ -7,6 +7,15 @@ d3.json(queryUrl).then(function(data) {
     createFeatures(data.features);
 });
 
+function getColor(d){
+    return d >= 90  ? '#A63603' :
+           d >= 70  ? '#E6550D' :
+           d >= 50   ? '#FD8D3C' :
+           d >= 30   ? '#FDAE6B' :
+           d >= 10   ? '#FDD0A2' :
+                      '#FEEDDE';
+}
+
 function createFeatures(earthquakeData) {
     
     // An array which will be used to store created quakeMarkers
@@ -14,16 +23,17 @@ function createFeatures(earthquakeData) {
     earthquakeData.forEach(function (quake) {
         var lng = quake.geometry.coordinates[0];
         var lat = quake.geometry.coordinates[1];
-        var rad = quake.properties.mag * 30000;
+        var depth = quake.geometry.coordinates[2]
+        var mag = quake.properties.mag * 30000;
         quakeMarkers.push(
             L.circle([lat, lng],{
                 weight: 1,
                 fillOpacity: 1,
                 color: "black",
-                fillColor: "yellow",
-                radius: rad
+                fillColor: getColor(depth),
+                radius: mag
             }).bindPopup("<h3>" + quake.properties.place +
-            "</h3><hr><h4>Magnitude: " + quake.properties.mag +"</h4><p>" + new Date(quake.properties.time) + "</p>")
+            "</h3><hr><h4>Magnitude: " + quake.properties.mag +", Depth: " + depth + "</h4><p>" + new Date(quake.properties.time) + "</p>")
         );
         
     });
