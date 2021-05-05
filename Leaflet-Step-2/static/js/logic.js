@@ -1,10 +1,13 @@
 // Store our API endpoint inside queryUrl
-var queryUrl = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson";
+var quakeDataUrl = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson";
+var plateDataUrl = "https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_boundaries.json";
 
 // Perform a GET request to the query URL
-d3.json(queryUrl).then(function(data) {
-    // Once we get a response, send the data.features object to the createFeatures function
-    createMap(data.features);
+d3.json(quakeDataUrl).then(function(quakeData) {
+    d3.json(plateDataUrl).then(function(plateData) {
+         // Once we get a response, send the data.features object to the createFeatures function
+        createMap(quakeData.features, plateData.features);
+    });
 });
 
 function getColor(d){
@@ -16,7 +19,7 @@ function getColor(d){
                       '#FEEDDE';
 }
 
-function createMap(earthquakeData) {
+function createMap(earthquakeData, plateData) {
     
     // An array which will be used to store created quakeMarkers
     var quakeMarkers = []
@@ -38,7 +41,20 @@ function createMap(earthquakeData) {
         
     });
 
+    // layer group created to be added to overlay
     var quakeLayer = L.layerGroup(quakeMarkers);
+
+    // Once we get a response, send the data.features object to the createFeatures function
+    console.log(plateData.features);
+    var plateLayer = L.geoJson(plateData, {
+        style: function(feature) {
+            return {
+            color: "orange",
+            weight: 1.5
+            };
+        }
+    });
+
 
     var satelliteMap = L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
         attribution: "© <a href='https://www.mapbox.com/about/maps/'>Mapbox</a> © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> <strong><a href='https://www.mapbox.com/map-feedback/' target='_blank'>Improve this map</a></strong>",
@@ -67,6 +83,8 @@ function createMap(earthquakeData) {
         accessToken: API_KEY
     });
 
+    console.log(plateLayer);
+    console.log(quakeLayer);
       // Define a baseMaps object to hold our base layers
     var baseMaps = {
         "Satellite": satelliteMap,
@@ -77,14 +95,14 @@ function createMap(earthquakeData) {
     // Create overlay object to hold our overlay layer
     var overlayMaps = {
         "Earthquakes": quakeLayer,
-        //"Tectonic Plates":  
+        "Tectonic Plates": plateLayer
     };
 
     // Create our map object
     var map = L.map("map", {
         center: [37.09, -95.71],
         zoom: 4,
-        layers: [satelliteMap, quakeLayer]
+        layers: [satelliteMap, quakeLayer, plateLayer]
     });
 
     // Create a layer control
