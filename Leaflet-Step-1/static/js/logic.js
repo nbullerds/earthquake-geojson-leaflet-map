@@ -4,7 +4,7 @@ var queryUrl = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_da
 // Perform a GET request to the query URL
 d3.json(queryUrl).then(function(data) {
     // Once we get a response, send the data.features object to the createFeatures function
-    createFeatures(data.features);
+    createMap(data.features);
 });
 
 function getColor(d){
@@ -16,14 +16,19 @@ function getColor(d){
                       '#FEEDDE';
 }
 
-function createFeatures(earthquakeData) {
+function createMap(earthquakeData) {
     
+    // Create our map object
+    var map = L.map("map", {
+        center: [37.09, -95.71],
+        zoom: 4
+    });
     // An array which will be used to store created quakeMarkers
     var quakeMarkers = []
     earthquakeData.forEach(function (quake) {
         var lng = quake.geometry.coordinates[0];
         var lat = quake.geometry.coordinates[1];
-        var depth = quake.geometry.coordinates[2]
+        var depth = quake.geometry.coordinates[2];
         var mag = quake.properties.mag * 30000;
         quakeMarkers.push(
             L.circle([lat, lng],{
@@ -38,22 +43,32 @@ function createFeatures(earthquakeData) {
         
     });
 
-    var quakeLayer = L.layerGroup(quakeMarkers);
+    L.layerGroup(quakeMarkers).addTo(map);
 
-    var lightMap = L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
+    L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
         attribution: "© <a href='https://www.mapbox.com/about/maps/'>Mapbox</a> © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> <strong><a href='https://www.mapbox.com/map-feedback/' target='_blank'>Improve this map</a></strong>",
         tileSize: 512,
         maxZoom: 18,
         zoomOffset: -1,
         id: "mapbox/light-v10",
         accessToken: API_KEY
-    });
+    }).addTo(map);
 
-    // Create our map object
-    L.map("map", {
-        center: [37.09, -95.71],
-        zoom: 4,
-        layers: [lightMap, quakeLayer]
-    });
+    var legend = L.control({position: 'bottomright'});
+    legend.onAdd = function(map){
 
+        var div = L.DomUtil.create('div', 'info legend');
+        var grades = [-10, 10, 30, 50, 70, 90];
+
+        // loop through our density intervals and generate a label with a colored square for each interval
+        for (var i = 0; i < grades.length; i++) {
+            div.innerHTML +=
+                '<i style="background:' + getColor(grades[i] + 1) + '"></i> ' +
+                grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
+        }
+    
+        return div;
+    };
+    
+    legend.addTo(map);
 }
