@@ -7,3 +7,4 @@ In order to run this code, you will need to do the following before accessing th
 1. Get a mapbox API key, which can be obtained here: https://www.mapbox.com/ 
 2. Create a file called "config.js" in either Leaflet-Step-2/static/js or Leaflet-Step-1/static/js, depending on desired functionality.  If you are unsure which to use, default to the Leaflet-Step-2 folder.
 3. In the config.js file, create a variable called "API_Key" and assign your mapbox API key to it.
+4. Once the above is completed, you'll be able to access the site at https://nbullerds.github.io/leaflet-challenge/Leaflet-Step-2/
